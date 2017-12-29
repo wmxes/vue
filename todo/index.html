@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="todolist.css">
+</head>
+<body>
+    <section id="app">
+        <div class="header">
+
+                    <input type="text" placeholder="请输入..." class="enter" @keyup.13="add" v-model="mes" ref="input">
+        </div>
+        <div class="box">
+            <div class="click">
+                <button @click="change(true)" :class="{active:status==true}">已完成</button>
+                <button @click="change(false)" :class="{active:status==false}">未完成</button>
+                <button @click="change('all')" :class="{active:status=='all'}">全部</button>
+            </div>
+            <ul class="list">
+                <li v-for="item in datas">
+                    <div v-if="item.edit">
+                        <span class="select" :class="item.status ? color : ''" @click="changeStatus(item)"></span>
+                        <p class="content" @dblclick="edit(item)">{{item.con}}</p>
+                        <span class="del" @click="del(item.id)">删除</span>
+                    </div>
+                    <div v-else>
+                        <input type="text" class="input" @blur="blur(item)" v-model="item.con">
+                    </div>
+                </li>
+            </ul>
+            <div class="nochoice" v-show="arr.length==0">无事项</div>
+        </div>
+    </section>
+</body>
+<script src="vue.js"></script>
+<script>
+
+    var app = new Vue({
+        el:"#app",
+        data:{
+            arr:localStorage.todo ? JSON.parse(localStorage.todo): [],
+            mes:'',
+            color:'color',
+            //保存button点击时的状态值，以便和datas处理---3个值
+            status:'all',
+        },
+        methods:{
+            add(){
+                var obj = {};
+                obj.id = Math.random()*new Date().getTime();
+                obj.con = this.mes;
+                obj.edit = true;
+                // 0表示未完成
+                obj.status = false;
+                this.arr.push(obj);
+                this.mes = '';
+                localStorage.todo = JSON.stringify(this.arr);
+            },
+            changeStatus(obj){
+                obj.status = !obj.status;
+                localStorage.todo = JSON.stringify(this.arr);
+            },
+            change(flag){
+                this.status = flag;
+            },
+            del(id){
+                this.arr = this.arr.filter(ele=>ele.id != id);
+                localStorage.todo = JSON.stringify(this.arr);
+            },
+            edit(obj){
+                obj.edit = false;
+            },
+            blur(obj){
+                obj.edit = true;
+                localStorage.todo = JSON.stringify(this.arr);
+            }
+        },
+        computed:{
+            datas(){
+                var datas=[];
+                if (this.status == "all"){
+                    datas = this.arr;
+                }else{
+                    datas = this.arr.filter(ele=>ele.status == this.status);
+                }
+                return datas;
+            }
+        },
+        mounted(){
+            this.$refs['input'].focus();
+        }
+    });
+</script>
+</html>
